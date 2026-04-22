@@ -54,6 +54,13 @@ if view == "Player View":
                 st.rerun() 
             else:
                 st.error(f"could not find player, create acount instead")
+                
+        player_name = st.text_input("pick player name for new acount")
+
+        #if st.button("create player"):
+
+
+        
     else:
         # get user name, not sure if i should store instead
         query = "SELECT Name FROM Players WHERE PlayerID = %s"
@@ -78,6 +85,7 @@ if view == "Player View":
         elif subView == "add game":
             st.header("add game")
         
+        
 
 
         
@@ -86,22 +94,66 @@ if view == "Player View":
         
 
 elif view == "Developer View":
-    st.header("Welcome, Developer!")
     if 'current_developer' not in st.session_state:
         st.session_state.current_developer = -1
+
+    st.header("Welcome, Developer!")
     
     if st.session_state.current_developer == -1:
 
 
-        player_name = st.text_input("Who are you?")
+        developer_name = st.text_input("Who are you?")
         if st.button("Log In"):
-            st.session_state.current_developer = player_name
-            st.rerun() 
+
+            query = "SELECT DeveloperID FROM Developers WHERE Name = %s"
+            cursor.execute(query, (developer_name,))
+            developer_ID = cursor.fetchall()
+            if developer_ID:
+                st.session_state.current_developer = developer_ID[0]["DeveloperID"]
+                st.rerun() 
+            else:
+                st.error(f"could not find developer, create acount instead")
+        
+        developer_name = st.text_input("developer name for new acount")
+        if st.button("create new developer"):
+            values = (developer_name,)
+            query = "INSERT INTO Developers (Name) VALUES (%s)"
+            cursor.execute(query, values)
+            conn.commit()
+            st.success(f"added {developer_name}")
+
+
     else:
-        st.write("You are loged in as user", st.session_state.current_developer)
+        # get user name, not sure if i should store instead
+        query = "SELECT Name FROM Developers WHERE DeveloperID = %s"
+        cursor.execute(query, (st.session_state.current_developer,))
+        developer_name = cursor.fetchall()
+        st.write("You are loged in as user", developer_name[0]["Name"])
         if st.button("Log out"):
             st.session_state.current_developer = -1
             st.rerun() 
+        
+        st.sidebar.write("---")
+        subView = st.sidebar.radio("Player options:", ["your games", "add game"])
+
+        if subView == "your games":
+            st.header("your games")
+            query = "SELECT Games.Name FROM Developers INNER JOIN Games ON Games.DeveloperID = Developers.DeveloperID WHERE Developers.DeveloperID = %s"
+            cursor.execute(query, (st.session_state.current_developer,))
+            developed_games = cursor.fetchall()
+            st.table(developed_games)
+
+
+        elif subView == "add game":
+            st.header("add game")
+            game_name = st.text_input("game name")    
+            if st.button("add game"):
+                values = (game_name, st.session_state.current_developer,)
+                query = "INSERT INTO Games (Name, DeveloperID) VALUES (%s, %s)"
+                cursor.execute(query, values)
+                conn.commit()
+                st.success(f"added {game_name}")
+
 
 elif view == "Data View":
     st.header("Welcome to data view")
@@ -111,5 +163,9 @@ elif view == "Data View":
     st.table(all_games)
 
     cursor.execute("SELECT PlayerID, Name FROM Players")
+    all_users = cursor.fetchall()
+    st.table(all_users)
+
+    cursor.execute("SELECT DeveloperID, Name FROM Developers")
     all_users = cursor.fetchall()
     st.table(all_users)
