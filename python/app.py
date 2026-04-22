@@ -3,7 +3,7 @@ import mysql.connector
 import pandas as pd
 
 st.set_page_config(page_title="Game Tracker", layout="wide")
-st.title("🎮 Game Tracker Database")
+st.title("Game Tracker Database")
 
 
 
@@ -21,17 +21,17 @@ def init_connection():
 
 try:
     conn = init_connection()
-    cursor = conn.cursor(dictionary=True) # dictionary=True makes results easier to read
-    st.success("Connected to database successfully!")
+    cursor = conn.cursor(dictionary=True) 
+    st.success("Connected to database successfully")
 except Exception as e:
     st.error(f"Could not connect to database: {e}")
-    st.stop() # Stops the app if the database isn't running
+    st.stop() 
 
     
 
 
 
-view = st.sidebar.radio("Choose your perspective:", ["Player View", "Developer View"])
+view = st.sidebar.radio("Choose your perspective:", ["Player View", "Developer View", "Data View"])
 
 
 if view == "Player View":
@@ -45,16 +45,71 @@ if view == "Player View":
 
         player_name = st.text_input("Who are you?")
         if st.button("Log In"):
-            st.session_state.current_user = player_name
-            st.rerun() 
+
+            query = "SELECT PlayerID FROM Players WHERE Name = %s"
+            cursor.execute(query, (player_name,))
+            player_ID = cursor.fetchall()
+            if player_ID:
+                st.session_state.current_user = player_ID[0]["PlayerID"]
+                st.rerun() 
+            else:
+                st.error(f"could not find player, create acount instead")
     else:
-        st.write("You are loged in as user", st.session_state.current_user)
+        # get user name, not sure if i should store instead
+        query = "SELECT Name FROM Players WHERE PlayerID = %s"
+        cursor.execute(query, (st.session_state.current_user,))
+        player_name = cursor.fetchall()
+        st.write("You are loged in as user", player_name[0]["Name"])
+        if st.button("Log out"):
+            st.session_state.current_user = -1
+            st.rerun() 
+        
+        st.sidebar.write("---")
+        subView = st.sidebar.radio("Player options:", ["your games", "add game"])
+
+        if subView == "your games":
+            st.header("your games")
+            query = "SELECT Games.Name FROM HasPlayed INNER JOIN Games ON HasPlayed.GameID = Games.GameID WHERE HasPlayed.PlayerID = %s"
+            cursor.execute(query, (st.session_state.current_user,))
+            played_games = cursor.fetchall()
+            st.table(played_games)
+
+
+        elif subView == "add game":
+            st.header("add game")
+        
+
+
+        
+
 
         
 
 elif view == "Developer View":
     st.header("Welcome, Developer!")
-    st.write("You are in the secret developer area.")
+    if 'current_developer' not in st.session_state:
+        st.session_state.current_developer = -1
     
-    if st.button("Add Fake Game"):
-        st.success("Pretend a game was just added to the database!")    
+    if st.session_state.current_developer == -1:
+
+
+        player_name = st.text_input("Who are you?")
+        if st.button("Log In"):
+            st.session_state.current_developer = player_name
+            st.rerun() 
+    else:
+        st.write("You are loged in as user", st.session_state.current_developer)
+        if st.button("Log out"):
+            st.session_state.current_developer = -1
+            st.rerun() 
+
+elif view == "Data View":
+    st.header("Welcome to data view")
+
+    cursor.execute("SELECT GameID, Name FROM Games")
+    all_games = cursor.fetchall()
+    st.table(all_games)
+
+    cursor.execute("SELECT PlayerID, Name FROM Players")
+    all_users = cursor.fetchall()
+    st.table(all_users)
