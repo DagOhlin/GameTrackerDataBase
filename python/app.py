@@ -82,7 +82,7 @@ if view == "Player View":
 
         if subView == "your games":
             st.header("your games")
-            query = "SELECT Games.Name FROM HasPlayed INNER JOIN Games ON HasPlayed.GameID = Games.GameID WHERE HasPlayed.PlayerID = %s"
+            query = "SELECT Games.Name, HasPlayed.Score FROM HasPlayed INNER JOIN Games ON HasPlayed.GameID = Games.GameID WHERE HasPlayed.PlayerID = %s"
             cursor.execute(query, (st.session_state.current_user,))
             played_games = cursor.fetchall()
             st.table(played_games)
