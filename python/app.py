@@ -56,10 +56,16 @@ if view == "Player View":
                 st.error(f"could not find player, create acount instead")
                 
         player_name = st.text_input("pick player name for new acount")
+        player_age = st.number_input("age", min_value=0, max_value = 150, step=1)
 
-        #if st.button("create player"):
+        if st.button("create new player"):
+            values = (player_name, player_age,)
+            query = "INSERT INTO Players (Name, Age) VALUES (%s, %s)"
+            cursor.execute(query, values)
+            conn.commit()
+            st.success(f"added {player_name}")
 
-
+ 
         
     else:
         # get user name, not sure if i should store instead
@@ -84,6 +90,20 @@ if view == "Player View":
 
         elif subView == "add game":
             st.header("add game")
+            game_name = st.text_input("game name")
+            score = st.number_input("score", min_value=0, max_value = 10, step=1)
+
+            if st.button("Add Game To Collection"):
+                values = (game_name, st.session_state.current_user, score, 0, "")
+                return_values = cursor.callproc('AddGameToCollection', values)
+                conn.commit()
+                return_list = list(return_values.values())
+                retun_val = return_list[3]
+                return_message = return_list[4]
+                if retun_val == 0:
+                    st.success(return_message)
+                else:
+                    st.error(return_message)
         
         
 
@@ -162,7 +182,7 @@ elif view == "Data View":
     all_games = cursor.fetchall()
     st.table(all_games)
 
-    cursor.execute("SELECT PlayerID, Name FROM Players")
+    cursor.execute("SELECT PlayerID, Name, Age FROM Players")
     all_users = cursor.fetchall()
     st.table(all_users)
 
