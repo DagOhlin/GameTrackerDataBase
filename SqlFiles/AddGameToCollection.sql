@@ -18,10 +18,10 @@ IF game_amount > 1 THEN
 
 
 ELSEIF game_amount = 0 THEN
-	SELECT GameID INTO game_ID FROM Games WHERE game_name = Games.Name;
 	SET return_message = concat('Game ', game_name, ' does not exist');
     SET return_val = 1;
 ELSE
+	SELECT GameID INTO game_ID FROM Games WHERE game_name = Games.Name;
 	INSERT INTO HasPlayed (GameID, PlayerID, Score) VALUES (game_ID, player_ID, score);
     SET return_message = concat('Game ', game_name, ' added to colection with score ', score);
     SET return_val = 0;
