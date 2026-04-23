@@ -27,7 +27,7 @@ except Exception as e:
     st.error(f"Could not connect to database: {e}")
     st.stop() 
 
-    
+
 
 
 
@@ -55,17 +55,23 @@ if view == "Player View":
             else:
                 st.error(f"could not find player, create acount instead")
                 
-        player_name = st.text_input("pick player name for new acount")
+        new_player_name = st.text_input("pick player name for new acount")
         player_age = st.number_input("age", min_value=0, max_value = 150, step=1)
 
         if st.button("create new player"):
-            values = (player_name, player_age,)
-            query = "INSERT INTO Players (Name, Age) VALUES (%s, %s)"
-            cursor.execute(query, values)
-            conn.commit()
-            st.success(f"added {player_name}")
+            query = "SELECT PlayerID FROM Players WHERE Name = %s"
+            cursor.execute(query, (new_player_name,))
+            player_ID = cursor.fetchall()
+            if player_ID:
+                st.error(f"player username already exits, log in or pick another one")
+            else:
+                values = (new_player_name, player_age,)
+                query = "INSERT INTO Players (Name, Age) VALUES (%s, %s)"
+                cursor.execute(query, values)
+                conn.commit()
+                st.success(f"added {new_player_name}")
 
- 
+
         
     else:
         # get user name, not sure if i should store instead
@@ -102,8 +108,26 @@ if view == "Player View":
                 return_message = return_list[4]
                 if retun_val == 0:
                     st.success(return_message)
-                else:
+                elif retun_val == 1:
                     st.error(return_message)
+                elif retun_val == 2:
+                    st.error(return_message)
+                    query = "SELECT GameID, Name FROM Games WHERE Name = %s"
+                    cursor.execute(query, (game_name,))
+                    duplicate_games = cursor.fetchall()
+                    st.table(duplicate_games)
+            st.write("---")
+            st.write("Add game using ID instead of name")
+            
+            
+        
+            selected_game_id = st.number_input("Enter the GameID", min_value=1, step=1)
+            
+            if st.button("Add By GameID"):
+                query_insert = "INSERT INTO HasPlayed (GameID, PlayerID, Score) VALUES (%s, %s, %s)"
+                cursor.execute(query_insert, (selected_game_id, st.session_state.current_user, score))
+                conn.commit()
+                st.success(f"Game ID {selected_game_id} added to collection with score {score}!")
         
         
 
@@ -134,13 +158,22 @@ elif view == "Developer View":
             else:
                 st.error(f"could not find developer, create acount instead")
         
-        developer_name = st.text_input("developer name for new acount")
+        new_developer_name = st.text_input("developer name for new acount")
         if st.button("create new developer"):
-            values = (developer_name,)
-            query = "INSERT INTO Developers (Name) VALUES (%s)"
-            cursor.execute(query, values)
-            conn.commit()
-            st.success(f"added {developer_name}")
+            
+            query = "SELECT DeveloperID FROM Developers WHERE Name = %s"
+            cursor.execute(query, (new_developer_name,))
+            developer_ID = cursor.fetchall()
+            if developer_ID:
+                st.error(f"developer name already, exists, log in or pick another name")
+
+            else:
+            
+                values = (new_developer_name,)
+                query = "INSERT INTO Developers (Name) VALUES (%s)"
+                cursor.execute(query, values)
+                conn.commit()
+                st.success(f"added {new_developer_name}")
 
 
     else:
@@ -158,7 +191,7 @@ elif view == "Developer View":
 
         if subView == "your games":
             st.header("your games")
-            query = "SELECT Games.Name FROM Developers INNER JOIN Games ON Games.DeveloperID = Developers.DeveloperID WHERE Developers.DeveloperID = %s"
+            query = "SELECT Games.Name, Games.AverageScore FROM Developers INNER JOIN Games ON Games.DeveloperID = Developers.DeveloperID WHERE Developers.DeveloperID = %s ORDER BY Games.AverageScore DESC"
             cursor.execute(query, (st.session_state.current_developer,))
             developed_games = cursor.fetchall()
             st.table(developed_games)
