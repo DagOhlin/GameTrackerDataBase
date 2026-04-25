@@ -106,7 +106,9 @@ if view == "Player View":
                 return_list = list(return_values.values())
                 retun_val = return_list[3]
                 return_message = return_list[4]
-                if retun_val == 0:
+                if retun_val == 3:
+                    st.error(return_message)
+                elif retun_val == 0:
                     st.success(return_message)
                 elif retun_val == 1:
                     st.error(return_message)
