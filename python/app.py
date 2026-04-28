@@ -213,7 +213,7 @@ elif view == "Developer View":
 elif view == "Data View":
     st.header("Welcome to data view")
 
-    cursor.execute("SELECT GameID, Name FROM Games")
+    cursor.execute("SELECT Games.GameID, Games.Name AS GameName, Developers.Name AS DeveloperName FROM Games INNER JOIN Developers ON Developers.DeveloperID = Games.DeveloperID")
     all_games = cursor.fetchall()
     st.table(all_games)
 
@@ -221,6 +221,6 @@ elif view == "Data View":
     all_users = cursor.fetchall()
     st.table(all_users)
 
-    cursor.execute("SELECT DeveloperID, Name FROM Developers")
+    cursor.execute("SELECT Developers.DeveloperID, Developers.Name, count(Games.DeveloperID) AS AmountOfGames FROM Developers LEFT JOIN Games ON Developers.DeveloperID = Games.DeveloperID GROUP BY Developers.Name, Developers.DeveloperID")
     all_users = cursor.fetchall()
     st.table(all_users)
