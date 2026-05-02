@@ -189,7 +189,7 @@ elif view == "Developer View":
             st.rerun() 
         
         st.sidebar.write("---")
-        subView = st.sidebar.radio("Player options:", ["your games", "add game"])
+        subView = st.sidebar.radio("Developer options:", ["your games", "add game"])
 
         if subView == "your games":
             st.header("your games")
