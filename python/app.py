@@ -193,10 +193,18 @@ elif view == "Developer View":
 
         if subView == "your games":
             st.header("your games")
-            query = "SELECT Games.Name, Games.AverageScore FROM Developers INNER JOIN Games ON Games.DeveloperID = Developers.DeveloperID WHERE Developers.DeveloperID = %s ORDER BY Games.AverageScore DESC"
+            st.text("games ranked by AverageScore score")
+            query = "SELECT Games.Name, Games.AverageScore FROM Games WHERE Games.DeveloperID = %s ORDER BY Games.AverageScore DESC"
             cursor.execute(query, (st.session_state.current_developer,))
             developed_games = cursor.fetchall()
             st.table(developed_games)
+
+            st.text("games ranked by amount of players")
+            query = "SELECT Games.Name, COUNT(HasPlayed.PlayerID) AS AmountOfPlayers FROM Games LEFT JOIN HasPlayed ON Games.GameID = HasPlayed.GameID WHERE Games.DeveloperID = %s GROUP BY Games.GameID, Games.Name ORDER BY AmountOfPlayers DESC"
+            cursor.execute(query, (st.session_state.current_developer,))
+            developed_games = cursor.fetchall()
+            st.table(developed_games)
+
 
 
         elif subView == "add game":
