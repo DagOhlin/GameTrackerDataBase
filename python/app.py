@@ -33,24 +33,25 @@ except Exception as e:
 
 view = st.sidebar.radio("Choose your perspective:", ["Player View", "Developer View", "Data View"])
 
+    #--------player----------------
 
 if view == "Player View":
     if 'current_user' not in st.session_state:
         st.session_state.current_user = -1
 
     st.header("Welcome, Player!")
-    
-    if st.session_state.current_user == -1:
+    #--------when not loged in as player----------------
+    if st.session_state.current_user == -1: #check if user is logged in
 
 
         player_name = st.text_input("Who are you?")
         if st.button("Log In"):
 
-            query = "SELECT PlayerID FROM Players WHERE Name = %s"
+            query = "SELECT PlayerID FROM Players WHERE Name = %s" #gets playerid form name
             cursor.execute(query, (player_name,))
             player_ID = cursor.fetchall()
-            if player_ID:
-                st.session_state.current_user = player_ID[0]["PlayerID"]
+            if player_ID: #checks if player exists
+                st.session_state.current_user = player_ID[0]["PlayerID"] #sets logged in player id
                 st.rerun() 
             else:
                 st.error(f"could not find player, create acount instead")
@@ -59,8 +60,8 @@ if view == "Player View":
         player_age = st.number_input("age", min_value=0, max_value = 150, step=1)
 
         if st.button("create new player"):
-            query = "SELECT PlayerID FROM Players WHERE Name = %s"
-            cursor.execute(query, (new_player_name,))
+            query = "SELECT PlayerID FROM Players WHERE Name = %s" ##gets playerid form name
+            cursor.execute(query, (new_player_name,)) 
             player_ID = cursor.fetchall()
             if player_ID:
                 st.error(f"player username already exits, log in or pick another one")
@@ -72,7 +73,8 @@ if view == "Player View":
                 st.success(f"added {new_player_name}")
 
 
-        
+    #--------when loged in as player----------------
+
     else:
         # get user name, not sure if i should store instead
         query = "SELECT Name FROM Players WHERE PlayerID = %s"
@@ -86,7 +88,7 @@ if view == "Player View":
         st.sidebar.write("---")
         subView = st.sidebar.radio("Player options:", ["your games", "add game"])
 
-        if subView == "your games":
+        if subView == "your games": #shows your games
             st.header("your games")
             query = "SELECT Games.Name, HasPlayed.Score FROM HasPlayed INNER JOIN Games ON HasPlayed.GameID = Games.GameID WHERE HasPlayed.PlayerID = %s"
             cursor.execute(query, (st.session_state.current_user,))
@@ -94,7 +96,7 @@ if view == "Player View":
             st.table(played_games)
 
 
-        elif subView == "add game":
+        elif subView == "add game": #for adding games
             st.header("add game")
             game_name = st.text_input("game name")
             score = st.number_input("score", min_value=0, max_value = 10, step=1)
@@ -137,14 +139,17 @@ if view == "Player View":
         
 
 
-        
+    #--------developer----------------
+
 
 elif view == "Developer View":
     if 'current_developer' not in st.session_state:
         st.session_state.current_developer = -1
 
     st.header("Welcome, Developer!")
-    
+        
+    #--------when not loged in as developer----------------
+
     if st.session_state.current_developer == -1:
 
 
@@ -177,6 +182,7 @@ elif view == "Developer View":
                 conn.commit()
                 st.success(f"added {new_developer_name}")
 
+    #--------when loged in as developer----------------
 
     else:
         # get user name, not sure if i should store instead
@@ -217,6 +223,7 @@ elif view == "Developer View":
                 conn.commit()
                 st.success(f"added {game_name}")
 
+    #--------data veiw----------------
 
 elif view == "Data View":
     st.header("Welcome to data view")
